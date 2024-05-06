@@ -34,8 +34,8 @@ grep -e '^\s\[' | sort | uniq -c | while read line
 do
     count=$(cut -d '[' -f 1 <<<$line)
     loglevel=$(cut -d '[' -f 2 <<< $line | cut -d ']' -f 1)
-    source=$(echo $line | rev | cut -d ' ' -f 1 | rev)
-    logmsg=$(echo $line | awk -F"\[${loglevel}\] " '{print $2}' | awk -F"$source" '{print $1}')
+    source=$(echo "$line" | rev | cut -d ' ' -f 1 | rev)
+    logmsg=$(echo "$line" | awk -F"\[${loglevel}\] " '{print $2}' | awk -F"$source" '{print $1}')
 
     #Existence check
     exist=$(sqlite3 data/${dbname} "SELECT count(*) FROM logpattern WHERE loglevel = '$loglevel' AND logmsg = '$logmsg' AND source = '$source';")
