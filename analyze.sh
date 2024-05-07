@@ -22,6 +22,21 @@ function show_msg_list() {
     echo
 }
 
+function show_day_list() {
+    sqlite3 -header -column data/${dbname} "SELECT logdate, count(patternid) as 'Number of log patterns' FROM aggregation group by logdate;"
+}
+
+function show_newly_log() {
+    echo -e "${YELLOW}"
+    echo "Enter search conditions."
+    echo -e "log date format is YYYY-MM-DD${NC}"
+    read -p "Input log date to extract: " logdate
+    echo
+
+    sqlite3 -header -column data/${dbname} \
+    "SELECT loglevel, logmsg, source, createdat FROM logpattern WHERE date(createdat) >= date('${logdate}');" 
+}
+
 function show_log_by_day() {
     echo -e "${YELLOW}"
     echo "Enter search conditions."
@@ -133,6 +148,12 @@ function show_log_by_msg() {
 }
 
 case "$1" in
+    daylist)
+        show_day_list
+        ;;
+    newlylog)
+        show_newly_log
+        ;;
     byday)
         show_log_by_day
         ;;
@@ -141,11 +162,13 @@ case "$1" in
         ;;
     *)
         echo
-        echo "Usage: $0 $1 {function}"
+        echo "Usage: $0 {function}"
         echo
         echo " where {option} is one of the following;"
-        echo "  byday == Display aggregation of messages for a specified day."
-        echo "  bymsg == Display daily occurrences of specified messages."
+        echo "  daylist  == Display a list of log collection dates."
+        echo "  newlylog == Display newly generated logs after specified date."
+        echo "  byday    == Display aggregation of messages for specified date."
+        echo "  bymsg    == Display daily occurrences of specified messages."
         echo
         exit
 esac
