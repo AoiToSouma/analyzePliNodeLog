@@ -30,12 +30,18 @@ sed 's/logs from [0-9]* to [0-9]* */logs from 00000000 to 99999999 /g' | \
 sed 's/Plugin booted in [0-9]*.*s */Plugin booted in 00.00s /g' | \
 sed 's/random port [0-9]*.\./random port 00000\./g' | \
 sed 's/Node was offline for [0-9]*.*[0-9]*.*s/Node was offline for 0.0s/g' | \
+sed 's/job ID [0-9]*/job ID 00/g' | \
+sed 's/finished after [0-9]*.*[0-9]*.*s/finished after 0.0s/g' | \
+sed 's/mined transaction count is [0-9]* (latest mined nonce is [0-9]*)/mined transaction count is 00 (latest mined nonce is 00)/g' | \
+sed 's/nonces: first = [0-9]*, last = [0-9]*/nonces: first = 00, last = 00/g' | \
+sed 's/ETH balance for 0x[0-9a-zA-Z]\{40\}: [0-9]*.[0-9]*/ETH balance for 0x0000000000000000000000000000000000000000: 0.000000000000000000/g' | \
+sed 's/0x[0-9a-zA-Z]\{40\}/0x0000000000000000000000000000000000000000/g' | \
 grep -e '^\s\[' | sort | uniq -c | while read line
 do
     count=$(cut -d '[' -f 1 <<<$line)
     loglevel=$(cut -d '[' -f 2 <<< $line | cut -d ']' -f 1)
     source=$(echo "$line" | rev | cut -d ' ' -f 1 | rev)
-    logmsg=$(echo "$line" | awk -F"\[${loglevel}\] " '{print $2}' | awk -F"$source" '{print $1}' | sed -e 's/^ *//' -e 's/ *$//')
+    logmsg=$(echo "$line" | awk -F"\[${loglevel}\] " '{print $2}' | awk -F"$source" '{print $1}' | sed -e 's/^ *//' -e 's/ *$//' -e "s/'/''/g")
 
     #Existence check
     exist=$(sqlite3 data/${dbname} "SELECT count(*) FROM logpattern WHERE loglevel = '$loglevel' AND logmsg = '$logmsg' AND source = '$source';")
