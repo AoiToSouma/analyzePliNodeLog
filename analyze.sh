@@ -23,7 +23,38 @@ function show_msg_list() {
 }
 
 function show_day_list() {
-    sqlite3 -header -column data/${dbname} "SELECT logdate, count(patternid) as 'Number of log patterns' FROM aggregation group by logdate;"
+    sqlite3 -header -column data/${dbname} \
+" SELECT L.logdate, ID.inactiveday, I.INFO, D.DEBUG, W.WARN, E.ERROR, C.CRIT FROM \
+ (SELECT logdate FROM aggregation GROUP BY logdate) as L \
+LEFT JOIN\
+ (SELECT logdate, SUM(occurrednumber) as INFO FROM aggregation agg \
+   INNER JOIN logpattern ptn ON ptn.id = agg.patternid \
+   WHERE ptn.loglevel = 'INFO' GROUP BY agg.logdate) as I \
+ON L.logdate = I.logdate \
+LEFT JOIN \
+ (SELECT logdate, SUM(occurrednumber) as DEBUG FROM aggregation agg \
+   INNER JOIN logpattern ptn ON ptn.id = agg.patternid \
+   WHERE ptn.loglevel = 'DEBUG' GROUP BY agg.logdate) as D \
+ON L.logdate = D.logdate
+LEFT JOIN \
+ (SELECT logdate, SUM(occurrednumber) as WARN FROM aggregation agg \
+   INNER JOIN logpattern ptn ON ptn.id = agg.patternid \
+   WHERE ptn.loglevel = 'WARN' GROUP BY agg.logdate) as W \
+ON L.logdate = W.logdate \
+LEFT JOIN \
+ (SELECT logdate, SUM(occurrednumber) as ERROR FROM aggregation agg \
+   INNER JOIN logpattern ptn ON ptn.id = agg.patternid \
+   WHERE ptn.loglevel = 'ERROR' GROUP BY agg.logdate) as E \
+ON L.logdate = E.logdate \
+LEFT JOIN \
+(SELECT logdate, SUM(occurrednumber) as CRIT FROM aggregation agg \
+   INNER JOIN logpattern ptn ON ptn.id = agg.patternid \
+   WHERE ptn.loglevel = 'CRIT' GROUP BY agg.logdate) as C \
+ON L.logdate = C.logdate \
+LEFT JOIN \
+(SELECT date, '*' as inactiveday FROM inactivedays) as ID
+ON L.logdate = ID.date
+;"
 }
 
 function show_newly_log() {
@@ -34,7 +65,7 @@ function show_newly_log() {
     echo
 
     sqlite3 -header -column data/${dbname} \
-    "SELECT loglevel, logmsg, source, createdat FROM logpattern WHERE date(createdat) >= date('${logdate}');" 
+    "SELECT loglevel, logmsg, source, createdat FROM logpattern WHERE date(createdat) >= date('${logdate}');"
 }
 
 function show_log_by_day() {
@@ -44,7 +75,8 @@ function show_log_by_day() {
     read -p "Input log date to extract: " logdate
     echo
     sqlite3 -header -column data/${dbname} \
-    "SELECT ptn.id, ptn.loglevel, ptn.logmsg, ptn.source, agg.occurrednumber, agg.logdate \
+    -cmd '.width 6 110 20 10' \
+    "SELECT ' '||ptn.loglevel as level, ptn.logmsg, ptn.source, agg.occurrednumber as number \
        FROM logpattern ptn \
       INNER JOIN aggregation agg \
          ON ptn.id = agg.patternid \
@@ -82,7 +114,7 @@ function show_log_by_msg() {
     done
 
     IFS=$'\n'
-    logmsgs=($(sqlite3 data/${dbname} "SELECT DISTINCT logmsg FROM logpattern WHERE loglevel = '${loglevel}';"))
+    logmsgs=($(sqlite3 data/${dbname} "SELECT DISTINCT logmsg FROM logpattern WHERE loglevel = '${loglevel}' order by logmsg;"))
     msg_count=${#logmsgs[@]}
     page_size=10
     page_num=0

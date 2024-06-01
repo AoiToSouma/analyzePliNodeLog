@@ -37,6 +37,7 @@ sed 's/nonces: first = [0-9]*, last = [0-9]*/nonces: first = 00, last = 00/g' | 
 sed 's/ETH balance for 0x[0-9a-zA-Z]\{40\}: [0-9]*.[0-9]*/ETH balance for 0x0000000000000000000000000000000000000000: 0.000000000000000000/g' | \
 sed 's/0x[0-9a-zA-Z]\{40\}/0x0000000000000000000000000000000000000000/g' | \
 sed 's/Node was out-of-sync for [0-9]*.*[0-9]*.*s/Node was out-of-sync for 0.0s/g' | \
+sed 's/:[0-9]\{5\}->/:00000->/g' | \
 grep -e '^\s\[' | sort | uniq -c | while read line
 do
     count=$(cut -d '[' -f 1 <<<$line)

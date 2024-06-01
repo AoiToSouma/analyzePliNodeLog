@@ -66,3 +66,6 @@ sqlite3 data/${dbname} "CREATE TABLE aggregation( \
   occurrednumber INTEGER, \
   logdate TEXT, \
   foreign key (patternid) references logpattern(id));"
+
+echo -e "${GREEN}## Create TABLE inactivedays...${NC}"
+sqlite3 data/${dbname} "CREATE TABLE inactivedays(date TEXT PRIMARY KEY);"
