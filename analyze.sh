@@ -74,9 +74,10 @@ function show_log_by_day() {
     echo -e "log date format is YYYY-MM-DD${NC}"
     read -p "Input log date to extract: " logdate
     echo
+    # SQLite multi version Support
     sqlite3 -header -column data/${dbname} \
     -cmd '.width 6 110 20 10' \
-    "SELECT ' '||ptn.loglevel as level, ptn.logmsg, ptn.source, agg.occurrednumber as number \
+    "SELECT ' '||ptn.loglevel as level, SUBSTR(ptn.logmsg,1,110) as logmsg, SUBSTR(ptn.source,1,20) as source, agg.occurrednumber as number \
        FROM logpattern ptn \
       INNER JOIN aggregation agg \
          ON ptn.id = agg.patternid \

@@ -3,7 +3,7 @@
 source .env
 
 logdate=$(ls -l --time-style=+'%Y-%m-%dT%T' ~/.pm2/logs/NodeStartPM2-error.log.1 | sed -e 's/ \+/ /g' | cut -d' ' -f6)
-ymd_date=$(date -d"${logdate}" +"%Y-%m-%d")
+ymd_date=$(date -d"${logdate}" +"%Y-%m-%d" --date '1 day ago')
 
 #Duplicate processing check
 exist=$(sqlite3 data/${dbname} "SELECT count(*) FROM aggregation WHERE logdate = '$ymd_date';")
